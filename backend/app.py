@@ -133,7 +133,7 @@ def result(job_id):
 
     result_folder = os.path.join(
         SEPARATED_FOLDER,
-        "htdemucs_ft",
+        "mdx_extra_q",
         job_id
     )
 
