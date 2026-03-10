@@ -33,33 +33,38 @@ progress_status = {}
 
 
 def run_demucs_background(filepath, unique_name):
-    env = os.environ.copy()
-    # env["PATH"] += os.pathsep + FFMPEG_BIN_PATH
 
     progress_status[unique_name] = 0
     estimated_time = 300
     start_time = time.time()
 
     process = subprocess.Popen(
-[
-    "python",
-    "-m",
-    "demucs",
-    "-n", "mdx_extra_q",
-    "--segment", "8",
-    filepath
-]
-)
+        [
+            "python",
+            "-m",
+            "demucs",
+            "-n", "mdx_extra_q",
+            "--segment", "8",
+            filepath
+        ]
+    )
 
     while process.poll() is None:
         elapsed = time.time() - start_time
-        percent = min(int((elapsed / estimated_time) * 100), 95)
+        percent = min(int((elapsed / estimated_time) * 90), 90)
         progress_status[unique_name] = percent
         time.sleep(2)
 
     process.wait()
-    progress_status[unique_name] = 100
 
+    filename = os.path.basename(filepath)
+    result_folder = os.path.join(SEPARATED_FOLDER, "mdx_extra_q", filename)
+    vocals_path = os.path.join(result_folder, "vocals.wav")
+
+    while not os.path.exists(vocals_path):
+        time.sleep(1)
+
+    progress_status[unique_name] = 100
 
 # ---------------- API ROUTES ----------------
 
@@ -132,10 +137,10 @@ def progress(job_id):
 def result(job_id):
 
     result_folder = os.path.join(
-        SEPARATED_FOLDER,
-        "mdx_extra_q",
-        job_id
-    )
+    SEPARATED_FOLDER,
+    "mdx_extra_q",
+    job_id + ".mp3"
+)
 
     vocals_path = os.path.join(result_folder, "vocals.wav")
     drums_path = os.path.join(result_folder, "drums.wav")
