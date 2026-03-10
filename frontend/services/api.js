@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API = "http://localhost:5000/api";
+const API_URL = "https://vocalseparatorai.onrender.com/api";
 
 export async function uploadFile(file) {
   const formData = new FormData();
