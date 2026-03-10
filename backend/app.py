@@ -23,30 +23,28 @@ SEPARATED_FOLDER = os.path.join(BASE_DIR, "separated")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(SEPARATED_FOLDER, exist_ok=True)
 
-FFMPEG_BIN_PATH = r"C:\ffmpeg-8.0.1-full_build-shared\ffmpeg-8.0.1-full_build-shared\bin"
+FFMPEG_BIN_PATH = ""
 
 progress_status = {}
 
 
 def run_demucs_background(filepath, unique_name):
     env = os.environ.copy()
-    env["PATH"] += os.pathsep + FFMPEG_BIN_PATH
+    # env["PATH"] += os.pathsep + FFMPEG_BIN_PATH
 
     progress_status[unique_name] = 0
     estimated_time = 300
     start_time = time.time()
 
     process = subprocess.Popen(
-        [
-            os.path.join(os.environ["VIRTUAL_ENV"], "Scripts", "python.exe"),
-            "-m",
-            "demucs",
-            "-n", "htdemucs_ft",
-            # "--two-stems", "vocals",
-            filepath
-        ],
-        env=env
-    )
+    [
+        "python",
+        "-m",
+        "demucs",
+        "-n", "htdemucs_ft",
+        filepath
+    ]
+)
 
     while process.poll() is None:
         elapsed = time.time() - start_time
@@ -142,14 +140,15 @@ def result(job_id):
     if not os.path.exists(vocals_path):
         return jsonify({"status": "processing"})
 
+    base_url = request.host_url
+
     return jsonify({
         "status": "done",
-        "vocals": f"http://localhost:5000/api/download?file={vocals_path}",
-        "drums": f"http://localhost:5000/api/download?file={drums_path}",
-        "bass": f"http://localhost:5000/api/download?file={bass_path}",
-        "other": f"http://localhost:5000/api/download?file={other_path}"
+        "vocals": f"{base_url}api/download?file={vocals_path}",
+        "drums": f"{base_url}api/download?file={drums_path}",
+        "bass": f"{base_url}api/download?file={bass_path}",
+        "other": f"{base_url}api/download?file={other_path}"
     })
-
 
 @app.route("/api/download")
 def download():
@@ -162,4 +161,4 @@ def download():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000)
