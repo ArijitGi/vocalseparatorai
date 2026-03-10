@@ -41,13 +41,14 @@ def run_demucs_background(filepath, unique_name):
     start_time = time.time()
 
     process = subprocess.Popen(
-    [
-        "python",
-        "-m",
-        "demucs",
-        "-n", "htdemucs_ft",
-        filepath
-    ]
+[
+    "python",
+    "-m",
+    "demucs",
+    "-n", "mdx_extra_q",
+    "--segment", "8",
+    filepath
+]
 )
 
     while process.poll() is None:
