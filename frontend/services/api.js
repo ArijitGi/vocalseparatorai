@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "https://vocalseparatorai.onrender.com/api";
+const API = "https://vocalseparatorai.onrender.com/api";
 
 export async function uploadFile(file) {
   const formData = new FormData();
@@ -15,7 +15,7 @@ export async function uploadFile(file) {
 
 export async function uploadYouTube(url) {
   const res = await axios.post(`${API}/youtube`, {
-    url: url,   // IMPORTANT — backend expects "url"
+    url: url
   });
 
   return res.data.job_id;
