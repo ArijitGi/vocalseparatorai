@@ -34,37 +34,50 @@ progress_status = {}
 
 def run_demucs_background(filepath, unique_name):
 
-    progress_status[unique_name] = 0
-    estimated_time = 300
-    start_time = time.time()
+    progress_status[unique_name] = {
+        "progress": 0,
+        "status": "processing"
+    }
 
     process = subprocess.Popen(
         [
             "python",
             "-m",
             "demucs",
-            "-n", "mdx_extra_q",
-            "--segment", "8",
+            "-n","mdx_q",
+            "--segment","8",
             filepath
         ]
     )
 
     while process.poll() is None:
-        elapsed = time.time() - start_time
-        percent = min(int((elapsed / estimated_time) * 90), 90)
-        progress_status[unique_name] = percent
-        time.sleep(2)
+
+        current = progress_status[unique_name]["progress"]
+
+        if current < 90:
+            progress_status[unique_name]["progress"] += 2
+
+        time.sleep(5)
 
     process.wait()
 
     filename = os.path.basename(filepath)
-    result_folder = os.path.join(SEPARATED_FOLDER, "mdx_extra_q", filename)
-    vocals_path = os.path.join(result_folder, "vocals.wav")
 
-    while not os.path.exists(vocals_path):
-        time.sleep(1)
+    result_folder = os.path.join(
+        SEPARATED_FOLDER,
+        "mdx_q",
+        filename
+    )
 
-    progress_status[unique_name] = 100
+    vocals = os.path.join(result_folder,"vocals.wav")
+
+    while not os.path.exists(vocals):
+        time.sleep(2)
+
+    progress_status[unique_name] = {
+        "progress":100,
+        "status":"done"
+    }
 
 # ---------------- API ROUTES ----------------
 
@@ -129,16 +142,23 @@ def youtube_download():
 
 @app.route("/api/progress/<job_id>")
 def progress(job_id):
-    percent = progress_status.get(job_id, 0)
-    return jsonify({"progress": percent})
 
+    job = progress_status.get(job_id)
+
+    if not job:
+        return jsonify({
+            "progress":0,
+            "status":"waiting"
+        })
+
+    return jsonify(job)
 
 @app.route("/api/result/<job_id>")
 def result(job_id):
 
     result_folder = os.path.join(
     SEPARATED_FOLDER,
-    "mdx_extra_q",
+    "mdx_q",
     job_id + ".mp3"
 )
 
