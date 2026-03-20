@@ -1,170 +1,300 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState,useEffect,useRef } from "react";
+
 import {
-  Link as LinkIcon,
-  Wand2,
-  Download,
-  Mic,
-  Piano,
+Link as LinkIcon,
+Wand2,
+Download,
+Mic,
+Piano,
+Play,
+Pause
 } from "lucide-react";
-import { uploadYouTube, getProgress, getResult } from "../../services/api";
+
+import { uploadYouTube,getProgress,getResult } from "../../services/api";
+
 import { useJobStore } from "@/store/jobStore";
 
-export default function ConverterPage() {
-  const [url, setUrl] = useState("");
-  const [loading, setLoading] = useState(false);
+export default function ConverterPage(){
 
-  const { youtubeJob, startJob, setProgress, finishJob } =
-    useJobStore();
+const [url,setUrl]=useState("");
+const [loading,setLoading]=useState(false);
 
-  // Poll ONLY youtube job
-  useEffect(() => {
-    if (!youtubeJob?.id) return;
+const [playing,setPlaying]=useState(null);
+const [currentTime,setCurrentTime]=useState(0);
+const [duration,setDuration]=useState(0);
 
-    const interval = setInterval(async () => {
-      const p = await getProgress(youtubeJob.id);
-      setProgress("youtube", p);
+const audioRef=useRef(null);
 
-      if (p === 100) {
-        const res = await getResult(youtubeJob.id);
-        if (res.status === "done") {
-          finishJob("youtube", res);
-          clearInterval(interval);
-        }
-      }
-    }, 2000);
+const {youtubeJob,startJob,setProgress,finishJob}=useJobStore();
 
-    return () => clearInterval(interval);
-  }, [youtubeJob?.id, setProgress, finishJob]);
+useEffect(()=>{
 
-  const handleConvert = async () => {
-    if (!url) return;
-    setLoading(true);
-    const id = await uploadYouTube(url);
-    startJob(id, "youtube");
-    setLoading(false);
-  };
+if(!youtubeJob?.id) return;
 
-  return (
-    <div className="max-w-3xl mx-auto py-16">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-900">
-          Convert YouTube to Tracks
-        </h1>
-        <p className="mt-4 text-gray-500 text-lg">
-          Paste a YouTube link below to separate vocals and instrumentals
-          instantly using AI.
-        </p>
-      </div>
+const interval=setInterval(async()=>{
 
-      {!youtubeJob?.result && (
-        <div className="bg-white rounded-3xl shadow-sm border p-10">
-          <div className="relative">
-            <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Paste YouTube URL"
-              className="w-full pl-12 pr-4 py-4 rounded-2xl border focus:outline-none focus:ring-2 focus:ring-red-400"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-            />
-          </div>
+const data=await getProgress(youtubeJob.id);
 
-          <button
-            onClick={handleConvert}
-            disabled={loading}
-            className="mt-8 w-full bg-red-500 hover:bg-red-600 transition text-white py-4 rounded-2xl text-lg font-semibold shadow-lg flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <Wand2 size={20} />
-            {loading ? "Processing..." : "Convert and Separate"}
-          </button>
+setProgress("youtube",data.progress);
 
-          {youtubeJob?.isProcessing && (
-            <div className="mt-12">
-              <div className="flex justify-between text-sm mb-2">
-                <span>Analyzing Audio...</span>
-                <span className="text-red-500 font-semibold">
-                  {youtubeJob.progress}%
-                </span>
-              </div>
+if(data.progress===100){
 
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-red-500 h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${youtubeJob.progress}%` }}
-                ></div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+const res=await getResult(youtubeJob.id);
 
-      {youtubeJob?.result && (
-  <div className="mt-12 bg-white rounded-3xl shadow-sm border p-10 space-y-6">
+if(res.status==="done"){
 
-    {/* VOCALS */}
-    <div className="flex items-center justify-between p-5 border rounded-2xl">
-      <div className="flex items-center gap-4">
-        <Mic />
-        <span>Vocals</span>
-      </div>
-      <a
-        href={youtubeJob.result.vocals}
-        className="text-red-500 cursor-pointer"
-      >
-        <Download />
-      </a>
-    </div>
+finishJob("youtube",res);
 
-    {/* DRUMS */}
-    <div className="flex items-center justify-between p-5 border rounded-2xl">
-      <div className="flex items-center gap-4">
-        <Piano />
-        <span>Drums</span>
-      </div>
-      <a
-        href={youtubeJob.result.drums}
-        className="text-red-500 cursor-pointer"
-      >
-        <Download />
-      </a>
-    </div>
+clearInterval(interval);
 
-    {/* BASS */}
-    <div className="flex items-center justify-between p-5 border rounded-2xl">
-      <div className="flex items-center gap-4">
-        <Piano />
-        <span>Bass</span>
-      </div>
-      <a
-        href={youtubeJob.result.bass}
-        className="text-red-500 cursor-pointer"
-      >
-        <Download />
-      </a>
-    </div>
+}
 
-    {/* OTHER */}
-    <div className="flex items-center justify-between p-5 border rounded-2xl">
-      <div className="flex items-center gap-4">
-        <Piano />
-        <span>Other Instruments</span>
-      </div>
-      <a
-        href={youtubeJob.result.other}
-        className="text-red-500 cursor-pointer"
-      >
-        <Download />
-      </a>
-    </div>
+}
 
-  </div>
+},2000);
+
+return ()=>clearInterval(interval);
+
+},[youtubeJob?.id,setProgress,finishJob]);
+
+
+const handleConvert=async()=>{
+
+if(!url) return;
+
+setLoading(true);
+
+const id=await uploadYouTube(url);
+
+startJob(id,"youtube");
+
+setLoading(false);
+
+};
+
+
+const togglePlay=(url,type)=>{
+
+if(playing===type){
+
+audioRef.current.pause();
+
+setPlaying(null);
+
+return;
+
+}
+
+if(audioRef.current){
+
+audioRef.current.pause();
+
+}
+
+audioRef.current=new Audio(url);
+
+audioRef.current.play();
+
+audioRef.current.onloadedmetadata=()=>{
+
+setDuration(audioRef.current.duration);
+
+};
+
+audioRef.current.ontimeupdate=()=>{
+
+setCurrentTime(audioRef.current.currentTime);
+
+};
+
+setPlaying(type);
+
+};
+
+
+const formatTime=(t)=>{
+
+if(!t) return "0:00";
+
+const min=Math.floor(t/60);
+
+const sec=Math.floor(t%60);
+
+return min+":"+(sec<10?"0":"")+sec;
+
+};
+
+
+const seek=(e)=>{
+
+const value=e.target.value;
+
+audioRef.current.currentTime=value;
+
+setCurrentTime(value);
+
+};
+
+
+return(
+
+<div className="max-w-3xl mx-auto py-16">
+
+<div className="text-center mb-12">
+
+<h1 className="text-4xl font-bold text-gray-900">
+Convert YouTube to Tracks
+</h1>
+
+<p className="mt-4 text-gray-500 text-lg">
+Paste a YouTube link below to separate vocals and music instantly.
+</p>
+
+</div>
+
+
+{!youtubeJob?.result &&(
+
+<div className="bg-white rounded-3xl shadow-sm border p-10">
+
+<div className="relative">
+
+<LinkIcon className="absolute left-4 top-1/2 text-gray-400"/>
+
+<input
+type="text"
+placeholder="Paste YouTube URL"
+className="w-full pl-12 py-4 border rounded-2xl"
+value={url}
+onChange={(e)=>setUrl(e.target.value)}
+/>
+
+</div>
+
+
+<button
+onClick={handleConvert}
+className="mt-8 w-full bg-red-500 text-white py-4 rounded-2xl flex justify-center gap-2"
+>
+
+<Wand2/>
+
+{loading?"Processing":"Convert"}
+
+</button>
+
+</div>
+
 )}
 
-      <div className="mt-20 text-center text-gray-400 text-sm">
-        © 2026 VocalSeparatorAI. Made with love for music.
-      </div>
-    </div>
-  );
+
+{youtubeJob?.result &&(
+
+<div className="mt-12 bg-white rounded-3xl border p-10 space-y-6">
+
+<div className="flex justify-between p-5 border rounded-2xl">
+
+<div className="flex gap-4">
+
+<Mic/>
+
+<span>Vocals</span>
+
+</div>
+
+<div className="flex gap-5">
+
+<button onClick={()=>togglePlay(
+youtubeJob.result.vocals,
+"vocals"
+)}>
+
+{playing==="vocals"?<Pause/>:<Play/>}
+
+</button>
+
+<a href={youtubeJob.result.vocals} download>
+
+<Download/>
+
+</a>
+
+</div>
+
+</div>
+
+
+<div className="flex justify-between p-5 border rounded-2xl">
+
+<div className="flex gap-4">
+
+<Piano/>
+
+<span>Instrumental</span>
+
+</div>
+
+<div className="flex gap-5">
+
+<button onClick={()=>togglePlay(
+youtubeJob.result.instrumental,
+"instrumental"
+)}>
+
+{playing==="instrumental"?<Pause/>:<Play/>}
+
+</button>
+
+<a href={youtubeJob.result.instrumental} download>
+
+<Download/>
+
+</a>
+
+</div>
+
+</div>
+
+
+{playing &&(
+
+<div className="mt-8 border rounded-2xl p-6">
+
+<p className="font-medium mb-3">
+
+Now Playing: {playing}
+
+</p>
+
+<input
+type="range"
+min="0"
+max={duration}
+value={currentTime}
+onChange={seek}
+className="w-full"
+/>
+
+<div className="flex justify-between text-sm text-gray-500 mt-2">
+
+<span>{formatTime(currentTime)}</span>
+
+<span>{formatTime(duration)}</span>
+
+</div>
+
+</div>
+
+)}
+
+</div>
+
+)}
+
+</div>
+
+);
+
 }

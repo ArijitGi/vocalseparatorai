@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API = "https://vocalseparatorai.onrender.com/api";
+const API = "https://vocalseparatorai.onrender.com";  //http://127.0.0.1:5000/api for localhost
 
 export async function uploadFile(file) {
   const formData = new FormData();
@@ -23,7 +23,7 @@ export async function uploadYouTube(url) {
 
 export async function getProgress(jobId) {
   const res = await axios.get(`${API}/progress/${jobId}`);
-  return res.data.progress;
+  return res.data;
 }
 
 export async function getResult(jobId) {
