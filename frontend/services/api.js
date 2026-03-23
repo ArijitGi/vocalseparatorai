@@ -1,32 +1,64 @@
-import axios from "axios";
+const API="https://vocalseparatorai.onrender.com/api";
 
-const API = "https://vocalseparatorai.onrender.com";  //http://127.0.0.1:5000/api for localhost
 
-export async function uploadFile(file) {
-  const formData = new FormData();
-  formData.append("file", file);
+export const uploadFile = async(file)=>{
 
-  const res = await axios.post(`${API}/upload`, formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+const formData=new FormData();
 
-  return res.data.job_id;
-}
+formData.append("file",file);
 
-export async function uploadYouTube(url) {
-  const res = await axios.post(`${API}/youtube`, {
-    url: url
-  });
+const res=await fetch(`${API}/upload`,{
 
-  return res.data.job_id;
-}
+method:"POST",
 
-export async function getProgress(jobId) {
-  const res = await axios.get(`${API}/progress/${jobId}`);
-  return res.data;
-}
+body:formData
 
-export async function getResult(jobId) {
-  const res = await axios.get(`${API}/result/${jobId}`);
-  return res.data;
-}
+});
+
+const data=await res.json();
+
+return data.job_id;
+
+};
+
+
+
+export const uploadYouTube = async(url)=>{
+
+const res=await fetch(`${API}/youtube`,{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({url})
+
+});
+
+const data=await res.json();
+
+return data.job_id;
+
+};
+
+
+
+export const getProgress = async(id)=>{
+
+const res=await fetch(`${API}/progress/${id}`);
+
+return res.json();
+
+};
+
+
+
+export const getResult = async(id)=>{
+
+const res=await fetch(`${API}/result/${id}`);
+
+return res.json();
+
+};
