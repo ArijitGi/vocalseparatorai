@@ -4,3 +4,4 @@ yt-dlp
 demucs
 torch
 torchaudio
+gunicorn
