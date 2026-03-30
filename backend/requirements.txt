@@ -1,7 +1,10 @@
-flask
-flask-cors
-yt-dlp
-demucs
-torch
-torchaudio
-gunicorn
+Flask==2.3.3
+flask-cors==4.0.0
+yt-dlp==2023.11.14
+demucs==4.0.1
+torch==2.1.0
+torchaudio==2.1.0
+numpy==1.24.3
+gunicorn==21.2.0
+soundfile==0.12.1
+librosa==0.10.1
